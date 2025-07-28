@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+
+echo "JCD (Jump Change Directory) has been installed successfully!"
+echo ""
+echo "To enable JCD shell integration: source /usr/bin/jcd_function.sh"

@@ -1,0 +1,16 @@
+parameters:
+- name: srcPath
+  type: string
+  default: '.'
+- name: runStaticAnalysis
+  type: boolean
+  default: False
+- name: builddir
+  type: string
+  default: 'jcd_build'  
+
+steps:
+- script: |
+    cd ${{ parameters.srcPath }}
+    cargo build --release
+  displayName: "Build jcd"

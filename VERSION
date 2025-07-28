@@ -1,0 +1,27 @@
+JCD - Enhanced Directory Navigation Tool
+Version: 1.0.1
+Build Date: 2025-06-10
+Rust Edition: 2021
+
+Features:
+- Bidirectional directory search (up and down tree)
+- Smart proximity-based sorting with exact/substring match logic
+- Interactive multiple match display with tab completion cycling
+- Shell integration with bash wrapper function
+- Zero external dependencies (stdlib only)
+- Cross-platform compatibility
+
+Recent Updates (v1.0.1):
+- FIXED: Tab completion cycling now works correctly for multiple matches
+- IMPROVED: Binary returns all matching directories instead of just the first one
+- ENHANCED: Shell function properly cycles through matches like /.font-unix → /foo1
+
+Performance:
+- Binary size: ~563KB (optimized release build)
+- Search depth: Up to 8 levels for comprehensive coverage
+- Memory efficient recursive search implementation
+
+Architecture:
+- Core Rust binary for search logic
+- Bash wrapper function for shell integration
+- VS Code tasks for development workflow
