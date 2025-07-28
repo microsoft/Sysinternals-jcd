@@ -12,5 +12,6 @@ parameters:
 steps:
 - script: |
     cd ${{ parameters.srcPath }}
+    source $HOME/.cargo/env
     cargo build --release
   displayName: "Build jcd"
