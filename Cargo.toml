@@ -24,6 +24,9 @@ assets = [
     ["target/release/jcd", "usr/bin/jcd", "755"]
 ]
 
+[package.metadata.rpm]
+profile = "release"
+
 [package.metadata.rpm.targets]
 jcd = { path = "/usr/bin/jcd" }
 
