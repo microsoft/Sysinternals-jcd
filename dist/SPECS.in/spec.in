@@ -1,0 +1,24 @@
+Name:		jcd
+Version:	@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
+Release:	@PROJECT_VERSION_TWEAK@%{?dist}
+Summary:	Sysinternals jcd (Jump Change Directory)
+
+License:	MIT
+URL:		https://github.com/Microsoft/jcd
+
+%description
+jcd (Jump Change Directory) is a Sysinternals Rust-based command-line tool that provides enhanced directory
+ navigation with substring matching and smart selection. It's like the cd command, but with superpowers!
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/%{_bindir}
+cp jcd $RPM_BUILD_ROOT/%{_bindir}
+cp jcd_function.sh $RPM_BUILD_ROOT/%{_bindir}
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%{_bindir}/jcd
+%{_bindir}/jcd_function.sh

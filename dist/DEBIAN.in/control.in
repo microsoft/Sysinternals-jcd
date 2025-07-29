@@ -1,0 +1,8 @@
+Package: jcd
+Version: @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
+Architecture: @ARCHITECTURE@
+Maintainer: Sysinternals <syssite@microsoft.com>
+Description: Sysinternals jcd (Jump Change Directory)
+ jcd (Jump Change Directory) is a Sysinternals Rust-based command-line tool that provides enhanced directory
+ navigation with substring matching and smart selection. It's like the cd command, but with superpowers!
+License: MIT

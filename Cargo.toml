@@ -14,19 +14,3 @@ categories = ["command-line-utilities", "filesystem"]
 
 [dependencies]
 regex = "1.10"
-
-[package.metadata.deb]
-maintainer = "Sysinternals <syssite@microsoft.com>"
-name = "jcd"
-extended-description = "jcd (Jump Change Directory) is a Rust-based command-line tool that provides enhanced directory navigation with substring matching and smart selection. It's like the cd command, but with superpowers!"
-maintainer-scripts = "debian/"
-assets = [
-    ["target/release/jcd", "usr/bin/jcd", "755"]
-]
-
-[package.metadata.rpm]
-profile = "release"
-
-[package.metadata.rpm.targets]
-jcd = { path = "/usr/bin/jcd" }
-
