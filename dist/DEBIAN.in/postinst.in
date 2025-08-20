@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+# Post-install script for jcd
+# This script prints helpful instructions after installation.
+
+echo "jcd was installed successfully!"
+echo "To enable jcd in your shell, source the jcd_function.sh file:"
+echo "   source /usr/bin/jcd_function.sh"
+
+exit 0

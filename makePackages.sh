@@ -54,6 +54,13 @@ if [ "$PACKAGE_TYPE" = "deb" ]; then
     sed -e "s/@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@/$PACKAGE_VER/" -e "s/@ARCHITECTURE@/$ARCHITECTURE/" "${CMAKE_SOURCE_DIR}/dist/DEBIAN.in/control.in" > "${PROJECT_BINARY_DIR}/DEBIANcontrol"
     mkdir -p "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/DEBIAN"
     cp "${PROJECT_BINARY_DIR}/DEBIANcontrol" "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/DEBIAN/control"
+
+    # include post-install script if present
+    if [ -f "${CMAKE_SOURCE_DIR}/dist/DEBIAN.in/postinst.in" ]; then
+        cp "${CMAKE_SOURCE_DIR}/dist/DEBIAN.in/postinst.in" "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/DEBIAN/postinst"
+        chmod 755 "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/DEBIAN/postinst"
+    fi
+
     mkdir -p "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/usr/bin"
     cp "${PROJECT_BINARY_DIR}/jcd" "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/usr/bin/"
     cp "${PROJECT_BINARY_DIR}/jcd_function.sh" "${PROJECT_BINARY_DIR}/deb/${DEB_PACKAGE_NAME}/usr/bin/"
