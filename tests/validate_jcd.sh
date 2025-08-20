@@ -79,6 +79,24 @@ else
     echo "✗ Backward tab completion function missing"
 fi
 
+
+# Test Shift+Tab functionality
+echo "Testing Shift+Tab functionality..."
+
+# Check if direction variable exists
+if grep -q "_JCD_CYCLING_DIRECTION" /datadrive/jcd/jcd_function.sh; then
+    echo "✓ Shift+Tab direction support found"
+else
+    echo "✗ Shift+Tab direction support missing"
+fi
+
+# Check if backward completion function exists
+if declare -f _jcd_backward_tab_complete > /dev/null; then
+    echo "✓ Backward tab completion function loaded"
+else
+    echo "✗ Backward tab completion function missing"
+fi
+
 # Cleanup
 rm -rf /tmp/jcd_test
 
