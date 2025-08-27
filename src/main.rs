@@ -41,7 +41,13 @@ fn preserve_symlink_in_path(canonical_path: &Path, user_cwd: &Path, canonical_cw
     // If the canonical path starts with the canonical current directory,
     // replace that prefix with the user's symlink current directory
     if let Ok(relative_path) = canonical_path.strip_prefix(canonical_cwd) {
-        user_cwd.join(relative_path)
+        if relative_path.as_os_str().is_empty() {
+            // When the relative path is empty (i.e., canonical_path == canonical_cwd),
+            // return user_cwd directly to avoid the trailing slash from join("")
+            user_cwd.to_path_buf()
+        } else {
+            user_cwd.join(relative_path)
+        }
     } else if let Ok(relative_to_parent) = canonical_cwd.strip_prefix(canonical_path) {
         // Handle parent directories: navigate up from user_cwd
         let levels_up = relative_to_parent.components().count();
