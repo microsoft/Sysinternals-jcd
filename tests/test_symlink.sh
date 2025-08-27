@@ -17,7 +17,7 @@ mkdir -p "$ORIG_DIR/markrussinovich"
 # Create symlink
 ln -sf "$ORIG_DIR" "$SYMLINK_DIR"
 
-JCD_BINARY="/workspaces/jcd/target/release/jcd"
+JCD_BINARY="/datadrive/jcd/target/release/jcd"
 
 echo "Test structure:"
 echo "  $ORIG_DIR/ (original)"

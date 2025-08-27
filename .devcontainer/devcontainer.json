@@ -4,6 +4,10 @@
 	"name": "JCD Dev Container",
 	"image": "mcr.microsoft.com/devcontainers/rust:1",
 
+	// HACK: Use /datadrive/jcd until the hard coded paths to /datadrive in the tests are cleaned up.
+	"workspaceFolder": "/datadrive/jcd",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/datadrive/jcd,type=bind,consistency=cached",
+
 	"customizations": {
 		"vscode": {
 			"extensions": [
