@@ -17,13 +17,18 @@ NC='\033[0m' # No Color
 PASSED=0
 FAILED=0
 
+# Get script directory and set up paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Get the absolute path to the JCD binary
-JCD_BIN="$(pwd)/target/debug/jcd"
+JCD_BIN="$PROJECT_ROOT/target/release/jcd"
 
 # Ensure JCD is built
 if [ ! -f "$JCD_BIN" ]; then
     echo -e "${RED}Error: JCD binary not found. Building...${NC}"
-    cargo build || exit 1
+    cd "$PROJECT_ROOT"
+    cargo build --release || exit 1
 fi
 
 # Create test directory structure
@@ -64,7 +69,7 @@ test_jcd() {
     echo "Expected: $expected_result '$search_pattern'"
 
     cd "$start_dir" || { echo "Failed to cd to $start_dir"; return 1; }
-    
+
     # Execute the command and capture output
     local output
     output=$($command 2>&1)

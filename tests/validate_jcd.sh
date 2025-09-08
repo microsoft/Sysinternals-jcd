@@ -4,10 +4,13 @@
 echo "=== JCD Quick Validation ==="
 
 # Check if binary exists and is executable
-if [[ -x "/datadrive/jcd/target/release/jcd" ]]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JCD_BINARY="$SCRIPT_DIR/../target/release/jcd"
+
+if [[ -x "$JCD_BINARY" ]]; then
     echo "✓ Binary exists and is executable"
 else
-    echo "✗ Binary not found or not executable"
+    echo "✗ Binary not found or not executable at $JCD_BINARY"
     exit 1
 fi
 
@@ -19,7 +22,7 @@ mkdir -p /tmp/jcd_test/{parent/{child1,child2},sibling}
 cd /tmp/jcd_test/parent/child1
 
 # Test parent navigation
-result=$(/datadrive/jcd/target/release/jcd ".." 2>/dev/null)
+result=$("$JCD_BINARY" ".." 2>/dev/null)
 if [[ "$result" == "/tmp/jcd_test/parent" ]]; then
     echo "✓ Parent navigation works"
 else
@@ -27,7 +30,7 @@ else
 fi
 
 # Test multi-level navigation
-result=$(/datadrive/jcd/target/release/jcd "../.." 2>/dev/null)
+result=$("$JCD_BINARY" "../.." 2>/dev/null)
 if [[ "$result" == "/tmp/jcd_test" ]]; then
     echo "✓ Multi-level navigation works"
 else
@@ -35,7 +38,7 @@ else
 fi
 
 # Test relative pattern search
-result=$(/datadrive/jcd/target/release/jcd "../child2" 2>/dev/null)
+result=$("$JCD_BINARY" "../child2" 2>/dev/null)
 if [[ "$result" == "/tmp/jcd_test/parent/child2" ]]; then
     echo "✓ Relative pattern search works"
 else
@@ -44,7 +47,7 @@ fi
 
 # Test shell function
 echo "Testing shell function..."
-source /datadrive/jcd/jcd_function.sh
+source "$SCRIPT_DIR/../jcd_function.sh"
 
 # Test function existence
 if declare -f jcd > /dev/null; then
@@ -66,7 +69,7 @@ fi
 echo "Testing Shift+Tab functionality..."
 
 # Check if direction variable exists
-if grep -q "_JCD_CYCLING_DIRECTION" /datadrive/jcd/jcd_function.sh; then
+if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../jcd_function.sh"; then
     echo "✓ Shift+Tab direction support found"
 else
     echo "✗ Shift+Tab direction support missing"
@@ -84,7 +87,7 @@ fi
 echo "Testing Shift+Tab functionality..."
 
 # Check if direction variable exists
-if grep -q "_JCD_CYCLING_DIRECTION" /datadrive/jcd/jcd_function.sh; then
+if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../jcd_function.sh"; then
     echo "✓ Shift+Tab direction support found"
 else
     echo "✗ Shift+Tab direction support missing"

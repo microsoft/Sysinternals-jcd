@@ -3,8 +3,12 @@
 echo "=== Final Test: Absolute Path Consistency Fix ==="
 echo
 
+# Get script directory and set up paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Set up test
-cd /datadrive/jcd
+cd "$PROJECT_ROOT"
 rm -rf test_final
 mkdir -p test_final/tmp/foo/deep/nested/uniquefoo999
 cd test_final/tmp/foo
@@ -20,7 +24,7 @@ echo "AFTER:  '/uniquefoo' finds same result as 'uniquefoo'"
 echo
 
 echo "Testing relative pattern 'uniquefoo':"
-result_rel=$(../../../target/release/jcd uniquefoo 0 2>/dev/null)
+result_rel=$("$PROJECT_ROOT/target/release/jcd" uniquefoo 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Relative: $result_rel"
 else
@@ -28,7 +32,7 @@ else
 fi
 
 echo "Testing absolute pattern '/uniquefoo':"
-result_abs=$(../../../target/release/jcd /uniquefoo 0 2>/dev/null)
+result_abs=$("$PROJECT_ROOT/target/release/jcd" /uniquefoo 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Absolute: $result_abs"
     if [[ "$result_rel" == "$result_abs" ]]; then
@@ -61,5 +65,5 @@ echo "✓ Shell completion uses same logic as main binary"
 echo "✓ Maintains all existing functionality"
 
 # Cleanup
-cd /datadrive/jcd
+cd "$PROJECT_ROOT"
 rm -rf test_final
