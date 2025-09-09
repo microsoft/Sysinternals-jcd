@@ -36,6 +36,11 @@ test_result() {
 
 # Setup test structure
 echo "Setting up test structure..."
+
+# Get the absolute path to the JCD binary
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JCD_BINARY="$SCRIPT_DIR/../target/release/jcd"
+
 rm -rf /tmp/jcd_regression_test
 mkdir -p /tmp/jcd_regression_test/{parent/{child1,child2},sibling/{sub1,sub2},foo/{bar,baz}}
 
@@ -48,23 +53,23 @@ find /tmp/jcd_regression_test -type d | sort
 echo -e "\n=== Testing Core Relative Path Functionality ==="
 
 test_result "Parent navigation with '..'" \
-           "/datadrive/jcd/target/release/jcd '..'" \
+           "'$JCD_BINARY' '..'" \
            ".*/parent$"
 
 test_result "Grandparent navigation with '../..'" \
-           "/datadrive/jcd/target/release/jcd '../..'" \
+           "'$JCD_BINARY' '../..'" \
            ".*/jcd_regression_test$"
 
 test_result "Relative pattern '../child2'" \
-           "/datadrive/jcd/target/release/jcd '../child2'" \
+           "'$JCD_BINARY' '../child2'" \
            ".*/child2$"
 
 test_result "Deep relative pattern '../../foo'" \
-           "/datadrive/jcd/target/release/jcd '../../foo'" \
+           "'$JCD_BINARY' '../../foo'" \
            ".*/foo$"
 
 test_result "Pattern matching '../ch' (first match)" \
-           "/datadrive/jcd/target/release/jcd '../ch' 0" \
+           "'$JCD_BINARY' '../ch' 0" \
            ".*/child[12]$"
 
 # Test absolute path functionality (new feature)
@@ -81,19 +86,19 @@ mkdir -p immediate_test/{un,unmemorize,unmemorize-demo}
 cd immediate_test
 
 test_result "Multiple immediate matches for 'un' (should return quickly)" \
-           "timeout 2s /datadrive/jcd/target/release/jcd 'un' 0" \
+           "timeout 2s '$JCD_BINARY' 'un' 0" \
            ".*/un$"
 
 test_result "Second match for 'un' pattern" \
-           "/datadrive/jcd/target/release/jcd 'un' 1" \
+           "'$JCD_BINARY' 'un' 1" \
            ".*/unmemorize"
 
 # Test shell function basic functionality
 echo -e "\n=== Testing Shell Function ==="
 
 cd /tmp/jcd_regression_test/parent/child1
-export JCD_BINARY="/datadrive/jcd/target/release/jcd"
-source /datadrive/jcd/jcd_function.sh 2>/dev/null
+export JCD_BINARY="$JCD_BINARY"
+source "$SCRIPT_DIR/../jcd_function.sh" 2>/dev/null
 
 # Test if shell function is loaded
 if declare -f jcd > /dev/null; then

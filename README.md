@@ -1,6 +1,6 @@
 # JCD - Enhanced Directory Navigation Tool
 
-`jcd` (Jump Change Directory) is a Rust-based command-line tool that provides enhanced directory navigation with substring matching and smart selection. It's like the `cd` command, but with superpowers!
+`jcd` (Jump Change Directory) is a Rust-based command-line tool that provides enhanced directory navigation with substring matching and smart selection. It's like the `cd` command, but with superpowers! 'jcd' is part of the Sysinternals tool suite.
 
 ![JCD Demo](https://github.com/markrussinovich/jcd/blob/main/assets/jcd.gif?raw=true)
 
@@ -20,34 +20,11 @@
 - **Substring Matching**: Find directories by partial name matches
 - **Bidirectional Search**: Searches both up the directory tree and down into subdirectories
 
-## Installation
+## Install
+Please see installation instructions [here](INSTALL.md).
 
-1. **Clone and Build**:
-   ```bash
-   git clone <repository-url>
-   cd jcd
-   cargo build --release
-   ```
-
-2. **Add to Shell Configuration**:
-   Add the following lines to your `~/.bashrc` or `~/.zshrc` (replace `/path/to/jcd` with your actual path):
-   ```bash
-   export JCD_BINARY="/path/to/jcd/target/release/jcd"
-   source /path/to/jcd/jcd_function.sh
-   ```
-
-3. **Reload Shell**:
-   ```bash
-   source ~/.bashrc
-   ```
-4. **Build Packages**:
-   ```
-   cargo deb
-   or
-   cargo rpm
-   ```
-
-> **Note**: The shell function integration is **required** because a Rust binary cannot change the directory of its parent shell process. The `jcd_function.sh` wrapper handles this limitation by calling the binary and then changing directories based on its output.
+## Development
+Please see development instructions [here](DEVELOPMENT.md).
 
 ## Usage
 
@@ -157,11 +134,11 @@ $ jcd /foo<Enter>
 - **Case Sensitivity**: Works with both case-sensitive (default) and case-insensitive (`-i`) modes
 
 
-## Directory Ignore Support
+### Directory Ignore Support
 
 `jcd` supports ignoring unwanted directories using `.jcdignore` files with regex patterns. This helps skip common build directories, cache folders, and other directories you typically don't want to navigate to.
 
-### Ignore File Locations
+#### Ignore File Locations
 
 `jcd` searches for ignore files in the following order (first found takes precedence):
 
@@ -170,7 +147,7 @@ $ jcd /foo<Enter>
 3. **Legacy user**: `~/.jcdignore` (for backward compatibility)
 4. **System-wide**: `/etc/jcd/ignore` (affects all users)
 
-### Ignore File Format
+#### Ignore File Format
 
 Ignore files contain regex patterns, one per line:
 
@@ -205,16 +182,16 @@ venv
 env
 ```
 
-### Comment and Empty Line Support
+#### Comment and Empty Line Support
 
 - Lines starting with `#` are comments and ignored
 - Empty lines are ignored
 - Whitespace-only lines are ignored
 - Invalid regex patterns are skipped (with silent error handling)
 
-### Usage Examples
+#### Usage Examples
 
-#### Basic Ignore Usage
+##### Basic Ignore Usage
 ```bash
 # Create a project-local ignore file
 echo "target" > .jcdignore
@@ -229,7 +206,7 @@ jcd -x target   # Finds target directory
 jcd -x node     # Finds node_modules directory
 ```
 
-#### User-Wide Ignore Configuration
+##### User-Wide Ignore Configuration
 ```bash
 # Create user config directory
 mkdir -p ~/.config/jcd
@@ -253,7 +230,7 @@ jcd cache       # Skipped everywhere
 jcd build       # Skipped everywhere
 ```
 
-#### Regex Pattern Examples
+##### Regex Pattern Examples
 ```bash
 # Ignore all hidden directories (starting with .)
 echo "\\..*" > .jcdignore
@@ -268,7 +245,7 @@ echo "cache\\d+" > .jcdignore
 echo "tmp.*|temp.*|\\.tmp" > .jcdignore
 ```
 
-### Precedence Rules
+#### Precedence Rules
 
 When multiple ignore files exist:
 
@@ -287,149 +264,7 @@ Only the first found file is used (no merging).
 4. **Comment your patterns** for future maintenance
 5. **Test patterns** using the `-x` flag to verify they work as expected
 
-
-
-## How It Works
-
-The `jcd` tool works in two parts:
-
-1. **Rust Binary (`src/main.rs`)**:
-   - Performs the directory search and sorting
-   - Returns **all matching directories** when given different index parameters
-   - Supports cycling through multiple matches via index parameter
-   - Cannot change the parent shell's directory (fundamental limitation)
-
-2. **Shell Function (`jcd_function.sh`)**:
-   - Wraps the Rust binary and handles directory changing
-   - Provides intelligent tab completion with animated visual feedback
-   - Manages completion state to enable smooth cycling experience
-   - Handles fast shell-based navigation for common relative patterns
-   - Changes to the selected directory using the shell's `cd` command
-   - Shows animated loading indicators during search operations
-
-### Search Process
-
-1. **Ignore Pattern Loading**: Loads ignore patterns from configuration files (unless `-x` flag is used)
-2. **Relative Path Resolution**: Handles `..`, `../..`, `../pattern` etc. before search
-3. **Search Up**: Looks through parent directories for matches (applying ignore patterns)
-4. **Search Down**: Recursively searches subdirectories (up to 8 levels deep, skipping ignored directories)
-5. **Comprehensive Collection**: Gathers **all** matching directories (not just the first one)
-6. **Smart Sorting**:
-   - Prioritizes match quality (exact vs partial)
-   - Sorts by proximity within each quality category
-   - Maintains consistent ordering for reliable tab completion
-7. **Shell Integration**: Uses a bash wrapper function with sophisticated tab completion cycling
-8. **Visual Feedback**: Provides animated loading indicators for longer operations
-
-## Technical Details
-
-_JCD was vibe coded by Mark Russinovich, Mario Hewardt with Github Copilot Agent and Claude Sonnet 4._
-
-- **Language**: Rust for performance and reliability
-- **Dependencies**: `regex` crate for ignore pattern matching
-- **Architecture**: Rust binary + enhanced bash wrapper function
-- **Search Depth**: Limited to 8 levels deep for performance
-- **Shell Support**: Bash (with bidirectional tab completion cycling and animations)
-- **Case Sensitivity**: Configurable with `-i` flag (default: case-sensitive)
-- **Directory Filtering**: Regex-based ignore patterns with multiple configuration sources
-- **Configuration**: XDG Base Directory compliant with legacy support
-- **Tab Navigation**: Forward (Tab) and backward (Shift+Tab) cycling through matches
-- **Visual Feedback**: Animated loading indicators using ANSI escape sequences
-- **Performance**: Shell-based fast paths for common navigation patterns
-- **Relative Path Support**: Full resolution and search from resolved directories
-
-
-## Development
-
-### Building
-
-```bash
-# Debug build
-cargo build
-
-# Release build
-cargo build --release
-
-# Run tests
-cargo test
-```
-
-### Project Structure
-
-```
-jcd/
-├── src/
-│   └── main.rs                  # Core Rust implementation with relative path support
-├── .github/
-│   └── copilot-instructions.md  # Copilot custom instructions
-├── .vscode/
-│   └── tasks.json               # VS Code build tasks
-├── jcd_function.sh              # Enhanced bash wrapper with animations (ESSENTIAL)
-├── Cargo.toml                   # Rust dependencies and metadata
-├── Cargo.lock                   # Dependency lock file
-├── tests/                       # Test scripts
-└── README.md                    # This file
-```
-
-### Testing
-
-The project includes a comprehensive test suite located in the `tests/` directory:
-
-```bash
-# Run all tests (recommended)
-./tests/run_all_tests.sh
-
-# Individual test suites:
-# Run comprehensive test suite
-./tests/test_relative_comprehensive.sh
-
-# Test ignore functionality
-./tests/test_ignore_functionality.sh
-
-# Quick validation for CI/CD
-./tests/validate_jcd.sh
-
-# Validate Shift+Tab functionality
-./tests/validate_shift_tab.sh
-
-# Simple functionality test
-./tests/simple_test.sh
-
-# Quick regression test
-./tests/quick_regression_test.sh
-
-# Specific bug fix tests
-./tests/test_absolute_bug.sh
-./tests/test_absolute_path_consistency.sh
-./tests/test_regression_fix.sh
-./tests/final_absolute_path_test.sh
-
-# Python-based basic functionality verification
-./tests/verify_basic_functionality.py
-```
-
-### Manual Testing
-You can also test manually:
-```bash
-# Build the project
-cargo build --release
-
-# Test basic navigation
-cd /tmp
-jcd ..
-
-# Test relative paths
-jcd ../Documents
-jcd ../../usr/local
-
-# Test pattern matching
-jcd ../proj   # Should match project directories in parent
-```
-
-See `tests/README.md` for detailed information about the test suite.
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-```

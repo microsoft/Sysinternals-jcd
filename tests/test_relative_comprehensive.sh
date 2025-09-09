@@ -57,38 +57,42 @@ tree "$TEST_ROOT" 2>/dev/null || find "$TEST_ROOT" -type d | sort
 # Test binary directly
 echo -e "\n=== Testing JCD Binary Directly ==="
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JCD_BINARY="$SCRIPT_DIR/../target/release/jcd"
+
 cd "$TEST_ROOT/parent/child1"
 
 # Test 1: Basic parent navigation
 test_jcd "Navigate to parent with '..'" \
-         "/datadrive/jcd/target/release/jcd '..'" \
+         "$JCD_BINARY '..'" \
          ".*/parent$"
 
 # Test 2: Multi-level navigation
 test_jcd "Navigate two levels up with '../..'" \
-         "/datadrive/jcd/target/release/jcd '../..'" \
+         "$JCD_BINARY '../..'" \
          ".*/jcd_test_comprehensive$"
 
 # Test 3: Relative pattern search
 test_jcd "Search for 'child2' from parent level" \
-         "/datadrive/jcd/target/release/jcd '../child2'" \
+         "$JCD_BINARY '../child2'" \
          ".*/child2$"
 
 # Test 4: Deep relative search
 test_jcd "Search for 'foo' from grandparent level" \
-         "/datadrive/jcd/target/release/jcd '../../foo'" \
+         "$JCD_BINARY '../../foo'" \
          ".*/foo$"
 
 # Test 5: Multi-match relative search
 test_jcd "Find all matches for '../ch' pattern" \
-         "/datadrive/jcd/target/release/jcd '../ch' 0" \
+         "$JCD_BINARY '../ch' 0" \
          ".*/child[12]$"
 
 # Test shell function
 echo -e "\n=== Testing JCD Shell Function ==="
 
 # Source the function
-source /datadrive/jcd/jcd_function.sh
+source "$SCRIPT_DIR/../jcd_function.sh"
 
 cd "$TEST_ROOT/parent/child1"
 echo "Starting directory: $(pwd)"
@@ -156,7 +160,7 @@ cd "$TEST_ROOT/parent/child1"
 echo "Testing search performance with relative patterns..."
 time_start=$(date +%s%N)
 for i in {1..10}; do
-    /datadrive/jcd/target/release/jcd "../ch" >/dev/null 2>&1
+    "$JCD_BINARY" "../ch" >/dev/null 2>&1
 done
 time_end=$(date +%s%N)
 duration=$(( (time_end - time_start) / 1000000 ))  # Convert to milliseconds
