@@ -2,7 +2,7 @@
 
 `jcd` (Jump Change Directory) is a Rust-based command-line tool that provides enhanced directory navigation with substring matching and smart selection. It's like the `cd` command, but with superpowers! 'jcd' is part of the Sysinternals tool suite.
 
-![JCD Demo](https://github.com/markrussinovich/jcd/blob/main/assets/jcd.gif?raw=true)
+![JCD Demo](https://github.com/microsoft/jcd/blob/main/assets/jcd.gif?raw=true)
 
 ## Features
 
