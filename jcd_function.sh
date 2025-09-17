@@ -41,7 +41,7 @@ jcd() {
         return 1
     fi
 
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
+    local jcd_binary="${JCD_BINARY:-jcd}"
 
     # Ensure binary exists
     if [ ! -x "$jcd_binary" ]; then
@@ -343,7 +343,7 @@ _jcd_run_with_animation() {
 _jcd_get_relative_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
+    local jcd_binary="${JCD_BINARY:-jcd}"
     local matches=()
     local idx=0
     local match
@@ -483,7 +483,7 @@ _jcd_get_relative_matches() {
 _jcd_get_absolute_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
+    local jcd_binary="${JCD_BINARY:-jcd}"
     local matches=()
 
     _jcd_debug "getting absolute matches for pattern '$pattern' (case_insensitive=$case_insensitive)"
