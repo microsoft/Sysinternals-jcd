@@ -115,7 +115,7 @@ echo "=== Test 4: Testing with bash completion ==="
 cd "$PROJECT_ROOT/test_absolute_consistency/tmp/foo"
 export JCD_BINARY="$PROJECT_ROOT/target/release/jcd"
 export JCD_DEBUG=0
-source "$PROJECT_ROOT/jcd_function.sh" 2>/dev/null
+source "$PROJECT_ROOT/src/jcd_function.sh" 2>/dev/null
 
 echo "Testing tab completion for absolute pattern '/uniquefoo':"
 

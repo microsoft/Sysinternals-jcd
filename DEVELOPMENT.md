@@ -5,11 +5,11 @@
 jcd/
 ├── src/
 │   └── main.rs                  # Core Rust implementation with relative path support
+│   └── jcd_function.sh          # Enhanced bash wrapper with animations
 ├── .github/
 │   └── copilot-instructions.md  # Copilot custom instructions
 ├── .vscode/
 │   └── tasks.json               # VS Code build tasks
-├── jcd_function.sh              # Enhanced bash wrapper with animations (ESSENTIAL)
 ├── Cargo.toml                   # Rust dependencies and metadata
 ├── Cargo.lock                   # Dependency lock file
 ├── tests/                       # Test scripts
@@ -28,7 +28,7 @@ jcd/
    Add the following lines to your `~/.bashrc` or `~/.zshrc` (replace `/path/to/jcd` with your actual path):
    ```bash
    export JCD_BINARY="/path/to/jcd/target/release/jcd"
-   source /path/to/jcd/jcd_function.sh
+   source /path/to/jcd/src/jcd_function.sh
    ```
 
 3. **Reload Shell**:

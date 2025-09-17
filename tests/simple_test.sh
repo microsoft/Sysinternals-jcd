@@ -58,7 +58,7 @@ done
 echo -e "\n=== Testing shell function ==="
 
 # Source the shell function
-source "$SCRIPT_DIR/../jcd_function.sh"
+source "$SCRIPT_DIR/../src/jcd_function.sh"
 
 cd /tmp/jcd_test/parent/child1
 echo "Current directory: $(pwd)"
