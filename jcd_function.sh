@@ -1017,7 +1017,6 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
     }
     add-zsh-hook preexec _jcd_zsh_preexec
 
-    echo "JCD completion loaded for zsh. Set JCD_DEBUG=1 to enable debug output." >&2
 else
     echo "Warning: JCD completion is only supported in bash and zsh. Current shell: ${SHELL:-unknown}" >&2
     echo "The jcd function will work, but tab completion will not be available." >&2

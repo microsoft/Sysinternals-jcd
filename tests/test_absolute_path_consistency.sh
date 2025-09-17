@@ -5,8 +5,12 @@ echo "Bug: Absolute patterns like '/4' had different search behavior than relati
 echo "Fix: Made absolute paths use the same comprehensive search logic as relative paths"
 echo
 
+# Get script directory and set up paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Set up test directory structure
-cd /datadrive/jcd
+cd "$PROJECT_ROOT"
 rm -rf test_absolute_consistency
 mkdir -p test_absolute_consistency/tmp/foo/deep/nested/foo4
 mkdir -p test_absolute_consistency/tmp/foo/deep/nested/uniquefoo999
@@ -17,11 +21,11 @@ cd test_absolute_consistency/tmp/foo
 echo "Test directory structure created:"
 echo "Current directory: $(pwd)"
 echo "Directories containing '4':"
-find /datadrive/jcd/test_absolute_consistency -name "*4*" -type d
+find "$PROJECT_ROOT/test_absolute_consistency" -name "*4*" -type d
 echo "Directories containing 'uniquefoo':"
-find /datadrive/jcd/test_absolute_consistency -name "*uniquefoo*" -type d
+find "$PROJECT_ROOT/test_absolute_consistency" -name "*uniquefoo*" -type d
 echo "Directories containing 'test123':"
-find /datadrive/jcd/test_absolute_consistency -name "*test123*" -type d
+find "$PROJECT_ROOT/test_absolute_consistency" -name "*test123*" -type d
 echo
 
 echo "=== Test 1: Pattern '4' vs '/4' ==="
@@ -29,7 +33,7 @@ echo "From directory: $(pwd)"
 echo
 
 echo "Relative pattern '4':"
-result_rel=$(../../../target/release/jcd 4 0 2>/dev/null)
+result_rel=$("$PROJECT_ROOT/target/release/jcd" 4 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_rel"
 else
@@ -37,7 +41,7 @@ else
 fi
 
 echo "Absolute pattern '/4':"
-result_abs=$(../../../target/release/jcd /4 0 2>/dev/null)
+result_abs=$("$PROJECT_ROOT/target/release/jcd" /4 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_abs"
     if [[ "$result_abs" == *"foo4"* ]]; then
@@ -56,7 +60,7 @@ echo "From directory: $(pwd)"
 echo
 
 echo "Relative pattern 'uniquefoo':"
-result_rel=$(../../../target/release/jcd uniquefoo 0 2>/dev/null)
+result_rel=$("$PROJECT_ROOT/target/release/jcd" uniquefoo 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_rel"
 else
@@ -64,7 +68,7 @@ else
 fi
 
 echo "Absolute pattern '/uniquefoo':"
-result_abs=$(../../../target/release/jcd /uniquefoo 0 2>/dev/null)
+result_abs=$("$PROJECT_ROOT/target/release/jcd" /uniquefoo 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_abs"
     if [[ "$result_rel" == "$result_abs" ]]; then
@@ -85,7 +89,7 @@ echo "From directory: $(pwd)"
 echo
 
 echo "Relative pattern 'test123':"
-result_rel=$(../../../target/release/jcd test123 0 2>/dev/null)
+result_rel=$("$PROJECT_ROOT/target/release/jcd" test123 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_rel"
 else
@@ -93,7 +97,7 @@ else
 fi
 
 echo "Absolute pattern '/test123':"
-result_abs=$(../../../target/release/jcd /test123 0 2>/dev/null)
+result_abs=$("$PROJECT_ROOT/target/release/jcd" /test123 0 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo "  ✓ Found: $result_abs"
     if [[ "$result_rel" == "$result_abs" ]]; then
@@ -108,10 +112,10 @@ fi
 echo
 
 echo "=== Test 4: Testing with bash completion ==="
-cd /datadrive/jcd/test_absolute_consistency/tmp/foo
-export JCD_BINARY="../../../target/release/jcd"
+cd "$PROJECT_ROOT/test_absolute_consistency/tmp/foo"
+export JCD_BINARY="$PROJECT_ROOT/target/release/jcd"
 export JCD_DEBUG=0
-source ../../../jcd_function.sh 2>/dev/null
+source "$PROJECT_ROOT/jcd_function.sh" 2>/dev/null
 
 echo "Testing tab completion for absolute pattern '/uniquefoo':"
 
@@ -140,5 +144,5 @@ echo "- Previously used search_breadth_first() with max_depth=3"
 echo "- This provides consistent behavior between '4' and '/4' patterns"
 
 # Cleanup
-cd /datadrive/jcd
+cd "$PROJECT_ROOT"
 rm -rf test_absolute_consistency

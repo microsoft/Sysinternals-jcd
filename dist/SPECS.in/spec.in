@@ -19,6 +19,11 @@ cp jcd_function.sh $RPM_BUILD_ROOT/%{_bindir}
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+echo "jcd was installed successfully!"
+echo "To enable jcd in your shell, source the jcd_function.sh file:"
+echo "   source /usr/bin/jcd_function.sh"
+
 %files
 %{_bindir}/jcd
 %{_bindir}/jcd_function.sh

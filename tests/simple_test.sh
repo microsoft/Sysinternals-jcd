@@ -21,29 +21,33 @@ echo "    └── baz/"
 # Test the binary directly
 echo -e "\n=== Testing binary with relative paths ==="
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JCD_BINARY="$SCRIPT_DIR/../target/release/jcd"
+
 cd /tmp/jcd_test/parent/child1
 echo "Current directory: $(pwd)"
 
 echo -e "\nTest 1: jcd '..' (should go to parent)"
-result=$(/datadrive/jcd/target/release/jcd ".." 2>&1)
+result=$("$JCD_BINARY" ".." 2>&1)
 echo "Result: $result"
 
 echo -e "\nTest 2: jcd '../..' (should go to jcd_test)"
-result=$(/datadrive/jcd/target/release/jcd "../.." 2>&1)
+result=$("$JCD_BINARY" "../.." 2>&1)
 echo "Result: $result"
 
 echo -e "\nTest 3: jcd '../child2' (should find sibling directory)"
-result=$(/datadrive/jcd/target/release/jcd "../child2" 2>&1)
+result=$("$JCD_BINARY" "../child2" 2>&1)
 echo "Result: $result"
 
 echo -e "\nTest 4: jcd '../../foo' (should find foo directory)"
-result=$(/datadrive/jcd/target/release/jcd "../../foo" 2>&1)
+result=$("$JCD_BINARY" "../../foo" 2>&1)
 echo "Result: $result"
 
 # Test with patterns
 echo -e "\nTest 5: jcd '../ch' (should find child directories)"
 for i in {0..5}; do
-    result=$(/datadrive/jcd/target/release/jcd "../ch" $i 2>/dev/null)
+    result=$("$JCD_BINARY" "../ch" $i 2>/dev/null)
     if [[ -n "$result" ]]; then
         echo "Match $i: $result"
     else
@@ -54,7 +58,7 @@ done
 echo -e "\n=== Testing shell function ==="
 
 # Source the shell function
-source /datadrive/jcd/jcd_function.sh
+source "$SCRIPT_DIR/../jcd_function.sh"
 
 cd /tmp/jcd_test/parent/child1
 echo "Current directory: $(pwd)"
