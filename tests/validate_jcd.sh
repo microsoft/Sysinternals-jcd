@@ -47,7 +47,7 @@ fi
 
 # Test shell function
 echo "Testing shell function..."
-source "$SCRIPT_DIR/../jcd_function.sh"
+source "$SCRIPT_DIR/../src/jcd_function.sh"
 
 # Test function existence
 if declare -f jcd > /dev/null; then
@@ -69,7 +69,7 @@ fi
 echo "Testing Shift+Tab functionality..."
 
 # Check if direction variable exists
-if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../jcd_function.sh"; then
+if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../src/jcd_function.sh"; then
     echo "✓ Shift+Tab direction support found"
 else
     echo "✗ Shift+Tab direction support missing"
@@ -87,7 +87,7 @@ fi
 echo "Testing Shift+Tab functionality..."
 
 # Check if direction variable exists
-if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../jcd_function.sh"; then
+if grep -q "_JCD_CYCLING_DIRECTION" "$SCRIPT_DIR/../src/jcd_function.sh"; then
     echo "✓ Shift+Tab direction support found"
 else
     echo "✗ Shift+Tab direction support missing"

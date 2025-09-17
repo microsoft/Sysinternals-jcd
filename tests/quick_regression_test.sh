@@ -98,7 +98,7 @@ echo -e "\n=== Testing Shell Function ==="
 
 cd /tmp/jcd_regression_test/parent/child1
 export JCD_BINARY="$JCD_BINARY"
-source "$SCRIPT_DIR/../jcd_function.sh" 2>/dev/null
+source "$SCRIPT_DIR/../src/jcd_function.sh" 2>/dev/null
 
 # Test if shell function is loaded
 if declare -f jcd > /dev/null; then

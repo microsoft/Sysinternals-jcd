@@ -29,28 +29,28 @@ echo "Testing JCD binary:"
 echo "Checking for Shift+Tab implementation:"
 
 # Check if the shell script contains the new direction variable
-if grep -q "_JCD_CYCLING_DIRECTION" "$PROJECT_ROOT/jcd_function.sh"; then
+if grep -q "_JCD_CYCLING_DIRECTION" "$PROJECT_ROOT/src/jcd_function.sh"; then
     echo "✓ Direction variable found in shell script"
 else
     echo "✗ Direction variable not found"
 fi
 
 # Check if the backward tab function exists
-if grep -q "_jcd_backward_tab_complete" "$PROJECT_ROOT/jcd_function.sh"; then
+if grep -q "_jcd_backward_tab_complete" "$PROJECT_ROOT/src/jcd_function.sh"; then
     echo "✓ Backward tab completion function found"
 else
     echo "✗ Backward tab completion function not found"
 fi
 
 # Check if Shift+Tab key binding exists
-if grep -q '\\e\[Z' "$PROJECT_ROOT/jcd_function.sh"; then
+if grep -q '\\e\[Z' "$PROJECT_ROOT/src/jcd_function.sh"; then
     echo "✓ Shift+Tab key binding found"
 else
     echo "✗ Shift+Tab key binding not found"
 fi
 
 # Test the direction logic in cycling
-if grep -q "_JCD_CYCLING_DIRECTION.*-1" "$PROJECT_ROOT/jcd_function.sh"; then
+if grep -q "_JCD_CYCLING_DIRECTION.*-1" "$PROJECT_ROOT/src/jcd_function.sh"; then
     echo "✓ Backward cycling logic found"
 else
     echo "✗ Backward cycling logic not found"
