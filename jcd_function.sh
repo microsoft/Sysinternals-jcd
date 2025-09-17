@@ -41,7 +41,17 @@ jcd() {
         return 1
     fi
 
-    local jcd_binary="${JCD_BINARY:-jcd}"
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     # Ensure binary exists
     if [ ! -x "$jcd_binary" ]; then
@@ -343,10 +353,21 @@ _jcd_run_with_animation() {
 _jcd_get_relative_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-jcd}"
     local matches=()
     local idx=0
     local match
+
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     _jcd_debug "getting relative matches for pattern '$pattern' (case_insensitive=$case_insensitive)"
 
@@ -483,8 +504,19 @@ _jcd_get_relative_matches() {
 _jcd_get_absolute_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-jcd}"
     local matches=()
+
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     _jcd_debug "getting absolute matches for pattern '$pattern' (case_insensitive=$case_insensitive)"
     # Handle relative path patterns that start with ../
