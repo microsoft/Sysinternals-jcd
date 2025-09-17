@@ -1,5 +1,14 @@
 # Install jcd
 
+## Mac
+jcd is available on [Sysinternals Homebrew tap](https://github.com/microsoft/homebrew-sysinternalstap). 
+```sh
+# Add Sysinternals tap
+brew tap microsoft/sysinternalstap
+
+# Install jcd
+brew install jcd
+```
 ## Azure Linux 3
 ```sh
 sudo dnf install jcd
