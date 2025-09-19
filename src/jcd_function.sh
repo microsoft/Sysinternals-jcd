@@ -6,6 +6,7 @@
 _jcd_print_usage() {
     echo "Usage:"
     echo "  jcd [-i] <directory_pattern>        - Changes directory according to the pattern"
+    echo "  jcd -h|--help                       - Display this help message"
     echo
     echo "directory_pattern:"
     echo "  jcd <substring>        # Navigate to directory matching substring"
@@ -23,6 +24,10 @@ jcd() {
             -i)
                 case_insensitive=true
                 shift
+                ;;
+            -h|--help)
+                _jcd_print_usage
+                return 0
                 ;;
             *)
                 if [ -z "$search_term" ]; then
