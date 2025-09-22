@@ -14,3 +14,11 @@ categories = ["command-line-utilities", "filesystem"]
 
 [dependencies]
 regex = "1.10"
+
+[[bin]]
+name = "fs_walk_count"
+path = "src/bin/fs_walk_count.rs"
+
+[[bin]]
+name = "symlink_cycle_detector"
+path = "src/bin/symlink_cycle_detector.rs"
