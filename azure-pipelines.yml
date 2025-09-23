@@ -1,0 +1,27 @@
+# Azure build pipelines for Sysinternalsebpf
+trigger:
+    branches:
+      include:
+        - release/*
+        - main
+      exclude:
+        - dev/*
+        - test/*
+
+pr:
+- main
+
+stages:
+ - stage: "Build"
+   jobs:
+    - job: "Build_jcd_24_04"
+      pool:
+        vmImage: "ubuntu-24.04"
+      steps:
+      - checkout: self
+        persistCredentials: true
+
+      - template: templates/build.yaml
+        parameters:
+          srcPath: '.'
+      displayName: "Build jcd"
