@@ -805,8 +805,8 @@ fn search_down_breadth_first_all(
         entries.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
 
         for entry in &entries {
-            if let Ok(metadata) = entry.metadata() {
-                if metadata.is_dir() {
+            if let Ok(file_type) = entry.file_type() {
+                if file_type.is_dir() {
                     let path = entry.path();
                     if let Some(name) = path.file_name() {
                         let name_str = name.to_string_lossy();
@@ -910,8 +910,8 @@ fn search_down_breadth_first_all(
 
             // Process all entries at this level
             for entry in &entries {
-                if let Ok(metadata) = entry.metadata() {
-                    if metadata.is_dir() {
+                if let Ok(file_type) = entry.file_type() {
+                    if file_type.is_dir() {
                         let path = entry.path();
                         if let Some(name) = path.file_name() {
                             let name_str = name.to_string_lossy();

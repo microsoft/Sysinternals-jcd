@@ -337,9 +337,12 @@ _jcd_run_with_animation() {
     _jcd_show_tab_busy_indicator &
     local animation_pid=$!
 
+    # Trap Ctrl-C to kill the spinner cleanly and exit
+    trap 'kill $animation_pid 2>/dev/null; wait $animation_pid 2>/dev/null; tput rc >&2; tput el >&2; return 130' INT
+
     # run the real work
     local output
-    output=$("$@")
+    output=$("$@" 2>/dev/null)
     local exit_code=$?
 
     # stop the spinner
@@ -348,6 +351,9 @@ _jcd_run_with_animation() {
 
     # Restore cursor position not supported on Mac
     tput rc >&2
+
+    # Clean up trap
+    trap - INT
 
     # emit the actual output to the caller
     echo "$output"
@@ -613,6 +619,9 @@ _jcd_backward_tab_complete() {
 
 # Internal tab completion function that handles both directions
 _jcd_tab_complete_internal() {
+    # Set up signal handler for CTRL-C to suppress kill messages
+    trap 'COMPREPLY=(); return 130' INT
+    
     # Parse arguments to find -i flag and determine what we're completing
     local has_i_flag=false
     local pattern_index=1
@@ -633,6 +642,7 @@ _jcd_tab_complete_internal() {
 
     # Only complete the pattern argument (could be at index 1 or 2 depending on -i flag)
     if [ $COMP_CWORD -ne $pattern_index ]; then
+        trap - INT
         _jcd_debug "not completing pattern argument (COMP_CWORD=$COMP_CWORD, pattern_index=$pattern_index), returning"
         return 0
     fi
@@ -897,6 +907,9 @@ _jcd_tab_complete_internal() {
 
     _jcd_debug "completing with: '$_JCD_LAST_COMPLETION' (index $_JCD_CURRENT_INDEX)"
     _jcd_debug "state after completion: mode='$_JCD_COMPLETION_MODE' pattern='$_JCD_ORIGINAL_PATTERN'"
+
+    # Clean up signal trap
+    trap - INT
 
     COMPREPLY=("$_JCD_LAST_COMPLETION")
 }
