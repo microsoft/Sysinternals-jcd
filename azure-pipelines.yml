@@ -25,7 +25,7 @@ stages:
       pool:
         vmImage: "ubuntu-24.04"
       steps:
-      - checkout: self
+      - checkout: SysinternalsJCD
         persistCredentials: true
 
       - template: templates/build.yaml
