@@ -8,6 +8,13 @@ trigger:
         - dev/*
         - test/*
 
+resources:
+  repositories:
+    - repository: SysinternalsJCD
+      type: github
+      name: microsoft/Sysinternals-jcd
+      endpoint: sysinternals     
+
 pr:
 - main
 
