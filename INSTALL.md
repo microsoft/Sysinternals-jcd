@@ -8,6 +8,7 @@ brew tap microsoft/sysinternalstap
 
 # Install jcd
 brew install jcd
+source /opt/homebrew/bin/jcd_function.sh
 ```
 ## Azure Linux 3
 ```sh
