@@ -21,27 +21,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 echo "jcd was installed successfully!"
-if [ -t 0 ]; then
-	printf '\nWould you like to source /usr/bin/jcd_function.sh now? [y/N] '
-	if read -r choice; then
-		case "$choice" in
-			[Yy]* )
-				if [ -r /usr/bin/jcd_function.sh ]; then
-					. /usr/bin/jcd_function.sh
-					echo "The jcd functions are now available in this shell."
-				else
-					echo "Couldn't source /usr/bin/jcd_function.sh because the file was not found."
-				fi
-				;;
-			* )
-				echo "Skipping sourcing /usr/bin/jcd_function.sh."
-				;;
-		esac
-	fi
-else
-	echo "To enable jcd in your shell, source the jcd_function.sh file:"
-	echo "   source /usr/bin/jcd_function.sh"
-fi
+echo "To enable jcd in your shell, source the jcd_function.sh file:"
+echo "   source /usr/bin/jcd_function.sh"
 
 %files
 %{_bindir}/jcd
