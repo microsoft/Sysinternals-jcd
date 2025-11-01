@@ -92,7 +92,7 @@ test_jcd "Find all matches for '../ch' pattern" \
 echo -e "\n=== Testing JCD Shell Function ==="
 
 # Source the function
-source "$SCRIPT_DIR/../jcd_function.sh"
+source "$SCRIPT_DIR/../src/jcd_function.sh"
 
 cd "$TEST_ROOT/parent/child1"
 echo "Starting directory: $(pwd)"

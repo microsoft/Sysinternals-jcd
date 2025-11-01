@@ -1,8 +1,19 @@
 # Install jcd
 
+## Mac
+jcd is available on [Sysinternals Homebrew tap](https://github.com/microsoft/homebrew-sysinternalstap).
+```sh
+# Add Sysinternals tap
+brew tap microsoft/sysinternalstap
+
+# Install jcd
+brew install jcd
+source /opt/homebrew/bin/jcd_function.sh
+```
 ## Azure Linux 3
 ```sh
 sudo dnf install jcd
+source /usr/bin/jcd_function.sh
 ```
 ## Ubuntu
 #### 1. Register Microsoft key and feed
@@ -15,6 +26,7 @@ sudo dpkg -i packages-microsoft-prod.deb
 ```sh
 sudo apt-get update
 sudo apt-get install jcd
+source /usr/bin/jcd_function.sh
 ```
 
 ## Debian
@@ -28,6 +40,7 @@ sudo dpkg -i packages-microsoft-prod.deb
 ```sh
 sudo apt-get update
 sudo apt-get install jcd
+source /usr/bin/jcd_function.sh
 ```
 ## Fedora
 #### 1. Register Microsoft key and feed
@@ -39,6 +52,7 @@ sudo rpm -Uvh https://packages.microsoft.com/config/fedora/$(rpm -E %fedora)/pac
 ```sh
 sudo apt-get update
 sudo apt-get install jcd
+source /usr/bin/jcd_function.sh
 ```
 
 ## RHEL
@@ -50,6 +64,7 @@ sudo rpm -Uvh https://packages.microsoft.com/config/rhel/$(. /etc/os-release && 
 #### 2. Install jcd
 ```sh
 sudo yum install jcd
+source /usr/bin/jcd_function.sh
 ```
 
 ## openSUSE 15
@@ -65,6 +80,7 @@ sudo chown root:root /etc/zypp/repos.d/microsoft-prod.repo
 #### 2. Install jcd
 ```sh
 sudo zypper install jcd
+source /usr/bin/jcd_function.sh
 ```
 
 ## SLES 12
@@ -76,6 +92,7 @@ sudo rpm -Uvh https://packages.microsoft.com/config/sles/12/packages-microsoft-p
 #### 2. Install jcd
 ```sh
 sudo zypper install jcd
+source /usr/bin/jcd_function.sh
 ```
 
 ## SLES 15
@@ -87,4 +104,5 @@ sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-p
 #### 2. Install jcd
 ```sh
 sudo zypper install jcd
+source /usr/bin/jcd_function.sh
 ```

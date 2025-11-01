@@ -6,7 +6,7 @@ fn main() {
     let target_dir = Path::new(&out_dir).parent().unwrap().parent().unwrap().parent().unwrap();
 
     // Copy jcd_function.sh to target/release (or target/debug)
-    let src = "jcd_function.sh";
+    let src = "src/jcd_function.sh";
     let dst = target_dir.join("jcd_function.sh");
 
     if let Err(e) = fs::copy(src, &dst) {
@@ -16,5 +16,5 @@ fn main() {
     }
 
     // Tell cargo to rerun this script if jcd_function.sh changes
-    println!("cargo:rerun-if-changed=jcd_function.sh");
+    println!("cargo:rerun-if-changed=src/jcd_function.sh");
 }

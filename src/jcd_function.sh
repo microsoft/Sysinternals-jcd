@@ -6,6 +6,7 @@
 _jcd_print_usage() {
     echo "Usage:"
     echo "  jcd [-i] <directory_pattern>        - Changes directory according to the pattern"
+    echo "  jcd -h|--help                       - Display this help message"
     echo
     echo "directory_pattern:"
     echo "  jcd <substring>        # Navigate to directory matching substring"
@@ -24,6 +25,10 @@ jcd() {
                 case_insensitive=true
                 shift
                 ;;
+            -h|--help)
+                _jcd_print_usage
+                return 0
+                ;;
             *)
                 if [ -z "$search_term" ]; then
                     search_term="$1"
@@ -41,7 +46,17 @@ jcd() {
         return 1
     fi
 
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     # Ensure binary exists
     if [ ! -x "$jcd_binary" ]; then
@@ -322,9 +337,12 @@ _jcd_run_with_animation() {
     _jcd_show_tab_busy_indicator &
     local animation_pid=$!
 
+    # Trap Ctrl-C to kill the spinner cleanly and exit
+    trap 'kill $animation_pid 2>/dev/null; wait $animation_pid 2>/dev/null; tput rc >&2; tput el >&2; return 130' INT
+
     # run the real work
     local output
-    output=$("$@")
+    output=$("$@" 2>/dev/null)
     local exit_code=$?
 
     # stop the spinner
@@ -333,6 +351,9 @@ _jcd_run_with_animation() {
 
     # Restore cursor position not supported on Mac
     tput rc >&2
+
+    # Clean up trap
+    trap - INT
 
     # emit the actual output to the caller
     echo "$output"
@@ -343,10 +364,21 @@ _jcd_run_with_animation() {
 _jcd_get_relative_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
     local matches=()
     local idx=0
     local match
+
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     _jcd_debug "getting relative matches for pattern '$pattern' (case_insensitive=$case_insensitive)"
 
@@ -483,8 +515,19 @@ _jcd_get_relative_matches() {
 _jcd_get_absolute_matches() {
     local pattern="$1"
     local case_insensitive="$2"  # true/false
-    local jcd_binary="${JCD_BINARY:-/usr/bin/jcd}"
     local matches=()
+
+    local jcd_binary=""
+    if [[ -n "${JCD_BINARY:-}" ]]; then
+        jcd_binary="$JCD_BINARY"
+    else
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew_prefix="$(brew --prefix 2>/dev/null || true)"
+            jcd_binary="$brew_prefix/bin/jcd"
+        else
+            jcd_binary="/usr/bin/jcd"
+        fi
+    fi
 
     _jcd_debug "getting absolute matches for pattern '$pattern' (case_insensitive=$case_insensitive)"
     # Handle relative path patterns that start with ../
@@ -576,6 +619,9 @@ _jcd_backward_tab_complete() {
 
 # Internal tab completion function that handles both directions
 _jcd_tab_complete_internal() {
+    # Set up signal handler for CTRL-C to suppress kill messages
+    trap 'COMPREPLY=(); return 130' INT
+    
     # Parse arguments to find -i flag and determine what we're completing
     local has_i_flag=false
     local pattern_index=1
@@ -596,6 +642,7 @@ _jcd_tab_complete_internal() {
 
     # Only complete the pattern argument (could be at index 1 or 2 depending on -i flag)
     if [ $COMP_CWORD -ne $pattern_index ]; then
+        trap - INT
         _jcd_debug "not completing pattern argument (COMP_CWORD=$COMP_CWORD, pattern_index=$pattern_index), returning"
         return 0
     fi
@@ -860,6 +907,9 @@ _jcd_tab_complete_internal() {
 
     _jcd_debug "completing with: '$_JCD_LAST_COMPLETION' (index $_JCD_CURRENT_INDEX)"
     _jcd_debug "state after completion: mode='$_JCD_COMPLETION_MODE' pattern='$_JCD_ORIGINAL_PATTERN'"
+
+    # Clean up signal trap
+    trap - INT
 
     COMPREPLY=("$_JCD_LAST_COMPLETION")
 }
