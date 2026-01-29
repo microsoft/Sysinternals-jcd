@@ -1,5 +1,7 @@
 # Install jcd
 
+To enusre that jcd is available in every terminal session, add the source line listed in the installation instructions for your system to your termainal configuration file (e.g. ~/.bashrc). 
+
 ## Mac
 jcd is available on [Sysinternals Homebrew tap](https://github.com/microsoft/homebrew-sysinternalstap).
 ```sh
