@@ -122,6 +122,17 @@ fn is_debug_enabled() -> bool {
     env::var("JCD_DEBUG").unwrap_or_default() == "1"
 }
 
+// Directory names on Unix can legally contain control characters (e.g., ESC, newline).
+// jcd prints paths to stdout (consumed by shell completion), so control characters
+// can lead to terminal escape injection and completion corruption.
+fn contains_control_chars(s: &str) -> bool {
+    s.chars().any(|c| c.is_control())
+}
+
+fn path_contains_control_chars(path: &Path) -> bool {
+    contains_control_chars(&path.to_string_lossy())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum MatchQuality {
     ExactUp,     // Exact match up the path - highest priority
@@ -414,8 +425,12 @@ fn main() {
         }
         process::exit(1);
     }
-
-    println!("{}", matches[tab_index].path.display());
+    let selected = &matches[tab_index].path;
+    if path_contains_control_chars(selected) {
+        // Refuse to print unsafe control characters to terminal/shell.
+        process::exit(1);
+    }
+    println!("{}", selected.display());
 }
 
 fn search_with_progress(
@@ -1006,6 +1021,17 @@ fn search_down_breadth_first_all(
 }
 
 fn finalize_matches(mut matches: Vec<DirectoryMatch>) -> Vec<DirectoryMatch> {
+    // Filter out paths containing control characters to prevent terminal escape injection
+    // and newline/control-char corruption in shell completion.
+    let before = matches.len();
+    matches.retain(|m| !path_contains_control_chars(&m.path));
+    if is_debug_enabled() && before != matches.len() {
+        eprintln!(
+            "DEBUG: Filtered {} matches containing control characters",
+            before - matches.len()
+        );
+    }
+
     if is_debug_enabled() {
         eprintln!("DEBUG: finalize_matches: input {} matches", matches.len());
         for (i, m) in matches.iter().enumerate() {
