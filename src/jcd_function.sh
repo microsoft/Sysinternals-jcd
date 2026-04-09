@@ -980,9 +980,6 @@ if [[ -n "${BASH_VERSION:-}" ]]; then
     # Hook to clear state when command is executed (but not during completion)
     trap '_jcd_clear_on_execute' DEBUG
 
-    # Export the function
-    export -f jcd
-
     # Clear any existing state when script is loaded to ensure clean start
     _jcd_reset_state
 
