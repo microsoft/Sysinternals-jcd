@@ -916,11 +916,13 @@ _jcd_tab_complete_internal() {
 
 # Clear jcd completion state when command is executed or changed
 _jcd_clear_on_execute() {
+    local _saved_last_arg="$1"
     # Only clear if we're not in the middle of completing an jcd command
     if [[ "${BASH_COMMAND}" != *"jcd "* ]] && [[ "${BASH_COMMAND}" != *"_jcd_"* ]]; then
         _jcd_debug "clearing state on command execute: '${BASH_COMMAND}'"
         _jcd_reset_state
     fi
+    : "$_saved_last_arg"
 }
 
 # Function to handle Shift+Tab key press for backward cycling
@@ -978,7 +980,7 @@ if [[ -n "${BASH_VERSION:-}" ]]; then
     fi
 
     # Hook to clear state when command is executed (but not during completion)
-    trap '_jcd_clear_on_execute' DEBUG
+    trap '_jcd_clear_on_execute "$_"' DEBUG
 
     # Export the function
     export -f jcd
