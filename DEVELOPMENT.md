@@ -51,6 +51,13 @@ jcd/
 
 > **Note**: The shell function integration is **required** because a Rust binary cannot change the directory of its parent shell process. The `jcd_function.sh` wrapper handles this limitation by calling the binary and then changing directories based on its output.
 
+The wrapper and binary must be updated together. The wrapper uses `--null` to
+receive one raw, NUL-terminated path without losing embedded or trailing newlines.
+Default redirected binary output remains newline-terminated; direct terminal
+output escapes control characters for display. Machine output is data, not shell
+code: never source or evaluate it. Bash Tab completion uses filename quoting, and
+Shift+Tab quotes the selected path before inserting it into the command line.
+
 ## Test
 The project includes a comprehensive test suite located in the `tests/` directory:
 
@@ -154,4 +161,3 @@ _JCD was vibe coded by Mark Russinovich, Mario Hewardt with Github Copilot Agent
 - **Visual Feedback**: Animated loading indicators using ANSI escape sequences
 - **Performance**: Shell-based fast paths for common navigation patterns
 - **Relative Path Support**: Full resolution and search from resolved directories
-

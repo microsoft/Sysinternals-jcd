@@ -1,7 +1,7 @@
 use regex::{Regex, RegexBuilder};
 use std::{
     env, fs,
-    io::{self, Write},
+    io::{self, IsTerminal, Write},
     path::{Path, PathBuf},
     process,
     sync::{Arc, Mutex},
@@ -336,6 +336,7 @@ fn main() {
     let mut tab_index = 0;
     let mut quiet_mode = false;
     let mut bypass_ignore = false; // -x flag to bypass ignore patterns
+    let mut null_output = false;
 
     let mut i = 1;
     while i < args.len() {
@@ -350,6 +351,10 @@ fn main() {
             }
             "--quiet" => {
                 quiet_mode = true;
+                i += 1;
+            }
+            "--null" => {
+                null_output = true;
                 i += 1;
             }
             arg => {
@@ -415,7 +420,98 @@ fn main() {
         process::exit(1);
     }
 
-    println!("{}", matches[tab_index].path.display());
+    let stdout = io::stdout();
+    if let Err(e) = write_match(
+        stdout.lock(),
+        &matches[tab_index].path,
+        null_output,
+        stdout.is_terminal(),
+    ) {
+        eprintln!("Error: Cannot write directory: {}", e);
+        process::exit(1);
+    }
+}
+
+fn write_match(
+    mut output: impl Write,
+    path: &Path,
+    null_output: bool,
+    terminal: bool,
+) -> io::Result<()> {
+    if terminal && !null_output {
+        for ch in path.to_string_lossy().chars() {
+            if ch.is_control() {
+                write!(output, "{}", ch.escape_default())?;
+            } else {
+                write!(output, "{}", ch)?;
+            }
+        }
+    } else {
+        // Machine output must preserve filename bytes, including embedded newlines.
+        output.write_all(path.as_os_str().as_encoded_bytes())?;
+    }
+    output.write_all(if null_output { b"\0" } else { b"\n" })?;
+    output.flush()
+}
+
+#[cfg(test)]
+mod output_tests {
+    use super::*;
+
+    #[test]
+    fn preserves_redirected_and_null_delimited_paths() {
+        let path = Path::new("/tmp/space ' \" \\ $(echo literal)\t\n\x1b[31m\n");
+        for null_output in [false, true] {
+            let mut output = Vec::new();
+            write_match(&mut output, path, null_output, false).unwrap();
+            let mut expected = path.as_os_str().as_encoded_bytes().to_vec();
+            expected.push(if null_output { 0 } else { b'\n' });
+            assert_eq!(output, expected);
+        }
+    }
+
+    #[test]
+    fn escapes_terminal_controls_without_changing_printable_text() {
+        let mut output = Vec::new();
+        write_match(
+            &mut output,
+            Path::new("/tmp/space ' \t\n\r\x1b[31m\u{009b}"),
+            false,
+            true,
+        )
+        .unwrap();
+        assert_eq!(output, b"/tmp/space ' \\t\\n\\r\\u{1b}[31m\\u{9b}\n");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn preserves_non_utf8_filename_bytes() {
+        use std::os::unix::ffi::OsStrExt;
+        let bytes = b"/tmp/non-utf8-\xff\n";
+        let path = Path::new(std::ffi::OsStr::from_bytes(bytes));
+        let mut output = Vec::new();
+        write_match(&mut output, path, true, false).unwrap();
+        assert_eq!(output, b"/tmp/non-utf8-\xff\n\0");
+    }
+
+    #[test]
+    fn propagates_output_errors() {
+        struct FailingWriter;
+        impl Write for FailingWriter {
+            fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+                Err(io::ErrorKind::BrokenPipe.into())
+            }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
+        }
+        assert_eq!(
+            write_match(FailingWriter, Path::new("/tmp"), true, false)
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::BrokenPipe
+        );
+    }
 }
 
 fn search_with_progress(
