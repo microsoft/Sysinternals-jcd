@@ -92,7 +92,7 @@ jcd() {
     if [[ "$search_term" == */ ]]; then
         local dir_without_slash="${search_term%/}"
         if [[ -d "$dir_without_slash" ]]; then
-            cd "$dir_without_slash"
+            cd -- "$dir_without_slash"
             return $?
         fi
         # If directory doesn't exist, fall through to search logic
@@ -101,15 +101,15 @@ jcd() {
     # Get the best match (index 0)
     local dest
     if [ "$case_insensitive" = true ]; then
-        dest=$("$jcd_binary" -i "$search_term" 0)
+        IFS= read -r -d '' dest < <("$jcd_binary" -i "$search_term" 0 --null)
     else
-        dest=$("$jcd_binary" "$search_term" 0)
+        IFS= read -r -d '' dest < <("$jcd_binary" "$search_term" 0 --null)
     fi
     if [ $? -ne 0 ] || [ -z "$dest" ]; then
-        echo "No directories found matching '$search_term'"
+        printf 'No directories found matching %q\n' "$search_term"
         return 1
     fi
-    cd "$dest"
+    cd -- "$dest"
 }
 
 # Global variables to store completion state
@@ -341,8 +341,7 @@ _jcd_run_with_animation() {
     trap 'kill $animation_pid 2>/dev/null; wait $animation_pid 2>/dev/null; tput rc >&2; tput el >&2; return 130' INT
 
     # run the real work
-    local output
-    output=$("$@" 2>/dev/null)
+    "$@" 2>/dev/null
     local exit_code=$?
 
     # stop the spinner
@@ -355,8 +354,6 @@ _jcd_run_with_animation() {
     # Clean up trap
     trap - INT
 
-    # emit the actual output to the caller
-    echo "$output"
     return $exit_code
 }
 
@@ -392,7 +389,8 @@ _jcd_get_relative_matches() {
     case "$pattern" in
         "..")
             # For "..", complete to parent directory if it exists
-            local parent_dir="$(dirname "$PWD")"
+            local parent_dir="${PWD%/*}"
+            parent_dir="${parent_dir:-/}"
             if [[ -d "$parent_dir" ]] && [[ "$parent_dir" != "$PWD" ]]; then
                 matches+=("$parent_dir")
                 _jcd_debug "  parent directory match: '$parent_dir'"
@@ -405,7 +403,8 @@ _jcd_get_relative_matches() {
             local level_count=$(( (${#path_components} + 1) / 3 )) # Each "../" has 3 chars including /
 
             for ((i=0; i<level_count; i++)); do
-                resolved_dir="$(dirname "$resolved_dir")"
+                resolved_dir="${resolved_dir%/*}"
+                resolved_dir="${resolved_dir:-/}"
                 if [[ "$resolved_dir" == "/" ]]; then
                     break
                 fi
@@ -434,7 +433,8 @@ _jcd_get_relative_matches() {
                 # Navigate to the relative directory
                 local nav_count=$(echo "$nav_part" | grep -o "\\.\\." | wc -l)
                 for ((i=0; i<nav_count; i++)); do
-                    resolved_dir="$(dirname "$resolved_dir")"
+                    resolved_dir="${resolved_dir%/*}"
+                    resolved_dir="${resolved_dir:-/}"
                     if [[ "$resolved_dir" == "/" ]]; then
                         break
                     fi
@@ -454,24 +454,23 @@ _jcd_get_relative_matches() {
                         _jcd_debug "find_cmd: $find_cmd"
                         _jcd_debug "resolved_dir: $resolved_dir"
                         _jcd_debug "search_part: $search_part"
-                        _jcd_debug "find command: $find_cmd \"$resolved_dir\" -maxdepth 1 -type d ! -path \"$resolved_dir\" 2>/dev/null | sort"
-                        $find_cmd "$resolved_dir" -maxdepth 1 -type d ! -path "$resolved_dir" 2>/dev/null | sort >&2
-                        while IFS= read -r dir; do
+                        _jcd_debug "find command: $find_cmd \"$resolved_dir\" -maxdepth 1 -type d ! -path \"$resolved_dir\" -print0 2>/dev/null | sort -z"
+                        while IFS= read -r -d '' dir; do
                             _jcd_debug "  find result: $dir"
                             if [[ -d "$dir" ]]; then
-                                local dir_name="$(basename "$dir")"
+                                local dir_name="${dir##*/}"
                                 if [[ "$dir_name" == *"$search_part"* ]]; then
                                     matches+=("$dir")
                                     _jcd_debug "    found relative pattern match: '$dir'"
                                 fi
                             fi
 
-                        done < <($find_cmd "$resolved_dir" -maxdepth 1 -type d ! -path "$resolved_dir" 2>/dev/null | sort)
+                        done < <($find_cmd "$resolved_dir" -maxdepth 1 -type d ! -path "$resolved_dir" -print0 2>/dev/null | sort -z)
                     else
                         # GNU find/sort (Linux)
                         while IFS= read -r -d $'\0' dir; do
                             if [[ -d "$dir" ]]; then
-                                local dir_name="$(basename "$dir")"
+                                local dir_name="${dir##*/}"
                                 if [[ "$dir_name" == *"$search_part"* ]]; then
                                     matches+=("$dir")
                                     _jcd_debug "    found relative pattern match: '$dir'"
@@ -484,9 +483,9 @@ _jcd_get_relative_matches() {
                 # Use the jcd binary directly, no per-call animation
                 while true; do
                     if [ "$case_insensitive" = "true" ]; then
-                        match=$("$jcd_binary" -i "$pattern" "$idx" --quiet 2>/dev/null)
+                        IFS= read -r -d '' match < <("$jcd_binary" -i "$pattern" "$idx" --quiet --null 2>/dev/null)
                     else
-                        match=$("$jcd_binary" "$pattern" "$idx" --quiet 2>/dev/null)
+                        IFS= read -r -d '' match < <("$jcd_binary" "$pattern" "$idx" --quiet --null 2>/dev/null)
                     fi
                     if [ $? -ne 0 ] || [ -z "$match" ]; then
                         break
@@ -508,7 +507,7 @@ _jcd_get_relative_matches() {
         _jcd_debug "returning empty result (no printf output)"
         return 0
     fi
-    printf '%s\n' "${matches[@]}"
+    printf '%s\0' "${matches[@]}"
 }
 
 # Get all matches for an absolute pattern
@@ -533,20 +532,15 @@ _jcd_get_absolute_matches() {
     # Handle relative path patterns that start with ../
     if [[ "$pattern" == ../* ]]; then
         _jcd_debug "  pattern starts with ../, using relative match logic"
-        local match_output
-        match_output=$(_jcd_get_relative_matches "$pattern" "$case_insensitive")
-        if [[ -n "$match_output" ]]; then
-            matches=()
-            while IFS= read -r line; do
-                matches+=("$line")
-            done <<<"$match_output"
-        fi
+        while IFS= read -r -d '' line; do
+            matches+=("$line")
+        done < <(_jcd_get_relative_matches "$pattern" "$case_insensitive")
         _jcd_debug "found ${#matches[@]} matches via relative logic"
         if [ ${#matches[@]} -eq 0 ]; then
             _jcd_debug "returning empty result (no printf output)"
             return 0
         fi
-        printf '%s\n' "${matches[@]}"
+        printf '%s\0' "${matches[@]}"
         return 0
     fi
 
@@ -559,9 +553,9 @@ _jcd_get_absolute_matches() {
 
     while true; do
         if [ "$case_insensitive" = "true" ]; then
-            match=$("$jcd_binary" -i "$pattern" "$idx" --quiet 2>/dev/null)
+            IFS= read -r -d '' match < <("$jcd_binary" -i "$pattern" "$idx" --quiet --null 2>/dev/null)
         else
-            match=$("$jcd_binary" "$pattern" "$idx" --quiet 2>/dev/null)
+            IFS= read -r -d '' match < <("$jcd_binary" "$pattern" "$idx" --quiet --null 2>/dev/null)
         fi
         if [ $? -ne 0 ] || [ -z "$match" ]; then
             break
@@ -580,7 +574,7 @@ _jcd_get_absolute_matches() {
         _jcd_debug "returning empty result (no printf output)"
         return 0
     fi
-    printf '%s\n' "${matches[@]}"
+    printf '%s\0' "${matches[@]}"
 }
 
 # Find current position in match array (handle trailing slash variations)
@@ -670,26 +664,25 @@ _jcd_tab_complete_internal() {
         # After 2 attempts in leaf mode, reset back to parent directory exploration
         if [[ $_JCD_LEAF_COMPLETION_COUNT -ge 2 ]]; then
             _jcd_debug "leaf mode: user has seen leaf directory multiple times, resetting to parent directory"
-            local parent_dir="$(dirname "$_JCD_ORIGINAL_PATTERN")"
+            local parent_dir="${_JCD_ORIGINAL_PATTERN%/*}"
+            parent_dir="${parent_dir:-/}"
             if [[ "$parent_dir" != "$_JCD_ORIGINAL_PATTERN" ]] && [[ -d "$parent_dir" ]]; then
                 _jcd_reset_state
                 # Set up for parent directory exploration
                 _JCD_ORIGINAL_PATTERN="$parent_dir/"
                 _JCD_IS_RELATIVE_PATTERN=false
-                local match_output
-                match_output=$(_jcd_get_absolute_matches "$parent_dir/" "false")
-                if [[ -n "$match_output" ]]; then
-                    _JCD_CURRENT_MATCHES=()
-                    while IFS= read -r line; do
-                        _JCD_CURRENT_MATCHES+=("$line")
-                    done <<<"$match_output"
+                _JCD_CURRENT_MATCHES=()
+                while IFS= read -r -d '' line; do
+                    _JCD_CURRENT_MATCHES+=("$line")
+                done < <(_jcd_get_absolute_matches "$parent_dir/" "false")
+                if [[ ${#_JCD_CURRENT_MATCHES[@]} -gt 0 ]]; then
                     _JCD_COMPLETION_MODE="cycling"
                     _JCD_CURRENT_INDEX=0
                     _jcd_debug "reset to parent directory cycling with ${#_JCD_CURRENT_MATCHES[@]} matches"
                     # Find the original leaf directory in the matches and start from there
-                    local leaf_dir_name="$(basename "$cur")"
+                    local leaf_dir_name="${cur##*/}"
                     for i in "${!_JCD_CURRENT_MATCHES[@]}"; do
-                        if [[ "$(basename "${_JCD_CURRENT_MATCHES[i]}")" == "$leaf_dir_name" ]]; then
+                        if [[ "${_JCD_CURRENT_MATCHES[i]##*/}" == "$leaf_dir_name" ]]; then
                             _JCD_CURRENT_INDEX=$i
                             _jcd_debug "found leaf dir at index $i, cycling to next"
                             break
@@ -725,52 +718,28 @@ _jcd_tab_complete_internal() {
             _jcd_debug "treating '$cur' as absolute pattern"
             _JCD_ORIGINAL_PATTERN="$cur"
             _JCD_IS_RELATIVE_PATTERN=false
-            local match_output
-            match_output=$(_jcd_run_with_animation _jcd_get_absolute_matches "$cur" "$has_i_flag")
-            _jcd_debug "raw match output: '$match_output'"
-            if [[ -n "$match_output" ]]; then
-                _JCD_CURRENT_MATCHES=()
-                while IFS= read -r line; do
-                    _JCD_CURRENT_MATCHES+=("$line")
-                done <<<"$match_output"
-            else
-                _JCD_CURRENT_MATCHES=()
-                _jcd_debug "explicitly set empty array for empty match output"
-            fi
+            _JCD_CURRENT_MATCHES=()
+            while IFS= read -r -d '' line; do
+                _JCD_CURRENT_MATCHES+=("$line")
+            done < <(_jcd_run_with_animation _jcd_get_absolute_matches "$cur" "$has_i_flag")
         elif [[ "$cur" == ../* ]] || [[ "$cur" == ./* ]] || [[ "$cur" == "." ]] || [[ "$cur" == ".." ]]; then
             # Relative pattern (including ../, ./, ., ..)
             _jcd_debug "treating '$cur' as relative pattern"
             _JCD_ORIGINAL_PATTERN="$cur"
             _JCD_IS_RELATIVE_PATTERN=true
-            local match_output
-            match_output=$(_jcd_run_with_animation _jcd_get_relative_matches "$cur" "$has_i_flag")
-            _jcd_debug "raw match output: '$match_output'"
-            if [[ -n "$match_output" ]]; then
-                _JCD_CURRENT_MATCHES=()
-                while IFS= read -r line; do
-                    _JCD_CURRENT_MATCHES+=("$line")
-                done <<<"$match_output"
-            else
-                _JCD_CURRENT_MATCHES=()
-                _jcd_debug "explicitly set empty array for empty match output"
-            fi
+            _JCD_CURRENT_MATCHES=()
+            while IFS= read -r -d '' line; do
+                _JCD_CURRENT_MATCHES+=("$line")
+            done < <(_jcd_run_with_animation _jcd_get_relative_matches "$cur" "$has_i_flag")
         else
             # Regular relative pattern (no explicit path prefix)
             _jcd_debug "treating '$cur' as regular relative pattern"
             _JCD_ORIGINAL_PATTERN="$cur"
             _JCD_IS_RELATIVE_PATTERN=true
-            local match_output
-            match_output=$(_jcd_run_with_animation _jcd_get_relative_matches "$cur" "$has_i_flag")
-            _jcd_debug "raw match output: '$match_output'"
-            if [[ -n "$match_output" ]]; then
-                _JCD_CURRENT_MATCHES=()
-                while IFS= read -r line; do
-                    _JCD_CURRENT_MATCHES+=("$line")
-                done <<<"$match_output"
-            else
-                _JCD_CURRENT_MATCHES=()
-                _jcd_debug "explicitly set empty array for empty match output"
-            fi
+            _JCD_CURRENT_MATCHES=()
+            while IFS= read -r -d '' line; do
+                _JCD_CURRENT_MATCHES+=("$line")
+            done < <(_jcd_run_with_animation _jcd_get_relative_matches "$cur" "$has_i_flag")
         fi
 
         # Don't override completion mode if we're already in leaf mode
@@ -957,7 +926,8 @@ _jcd_shift_tab_handler() {
 
         # Replace the current line with the completion
         if [[ ${#COMPREPLY[@]} -gt 0 ]]; then
-            local completion="${COMPREPLY[0]}"
+            local completion
+            printf -v completion '%q' "${COMPREPLY[0]}"
             if [[ "${words[1]}" == "-i" ]]; then
                 READLINE_LINE="jcd -i $completion"
             else
@@ -970,7 +940,7 @@ _jcd_shift_tab_handler() {
 
 if [[ -n "${BASH_VERSION:-}" ]]; then
     # Register the completion function
-    complete -o nospace -F _jcd_tab_complete jcd
+    complete -o filenames -o nospace -F _jcd_tab_complete jcd
 
     # Bind Shift+Tab to backward completion for jcd (only in interactive shells)
     if [[ $- == *i* ]]; then

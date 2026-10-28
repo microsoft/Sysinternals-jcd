@@ -4,6 +4,40 @@ This directory contains test scripts for the JCD (Enhanced Directory Navigation)
 
 ## Test Scripts
 
+### Manual path and pipeline safety checks
+
+```bash
+cargo test
+cargo build --release
+bash -n src/jcd_function.sh
+```
+
+For manual testing, run the following from the repository root in Bash:
+
+```bash
+export JCD_BINARY="$PWD/target/release/jcd"
+source src/jcd_function.sh
+fixture=$(mktemp -d)
+cd -- "$fixture"
+mkdir -- 'probe-$(touch JCD_UNEXPECTED)' 'probe-`touch JCD_UNEXPECTED`' \
+    'probe-space quote' $'probe-tab\tname' $'probe-newline\nname' \
+    $'probe-trailing\n' $'probe-escape\e[31m'
+```
+
+Type `jcd probe`, press Tab or Shift+Tab, then Enter. Repeat from the fixture
+directory for the different names. `printf '%q\n' "$PWD"` should show the exact
+selected filename; `test ! -e "$fixture/JCD_UNEXPECTED"` should succeed. The
+literal `touch` strings are harmless markers, not commands that should execute.
+Return to the fixture directory with `cd -- "$fixture"`.
+Running `"$JCD_BINARY" probe-escape --quiet` directly should display an escaped
+control character, not change the terminal color.
+
+In a disposable pipeline run, confirm ordinary/empty `ldpath` values still build,
+and values containing literal `$()` or quotes are not executed. After checkout,
+check that the repository Git configuration has no persisted authorization
+header without printing any credential values. This last check requires Azure
+Pipelines.
+
 ### `test_relative_comprehensive.sh`
 **Primary regression test suite**
 - Comprehensive testing of all relative path functionality
